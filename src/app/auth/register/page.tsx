@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styled from "@emotion/styled";
+import { supabase } from "@/lib/supabase";
 
 const Wrap = styled.main`
   min-height: 100vh;
@@ -67,24 +68,18 @@ export default function RegisterPage() {
     setMsg("");
     setSuccess(false);
     setLoading(true);
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setSuccess(true);
-        setMsg("회원가입이 완료되었습니다! 로그인 해주세요.");
-      } else {
-        setMsg(data.error || "회원가입에 실패했습니다.");
-      }
-    } catch {
-      setMsg("네트워크 오류로 회원가입에 실패했습니다.");
-    } finally {
-      setLoading(false);
+    // Supabase Auth 사용
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    if (!error) {
+      setSuccess(true);
+      setMsg("회원가입이 완료되었습니다! 로그인 해주세요.");
+    } else {
+      setMsg(error.message || "회원가입에 실패했습니다.");
     }
+    setLoading(false);
   };
 
   return (

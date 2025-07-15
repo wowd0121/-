@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import styled from "@emotion/styled";
 
@@ -66,12 +66,12 @@ export default function LoginPage() {
     e.preventDefault();
     setMsg("");
     setLoading(true);
-    const res = await signIn("credentials", {
+    // Supabase Auth 사용
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      redirect: false,
     });
-    if (res?.ok) {
+    if (!error) {
       router.push("/");
     } else {
       setMsg("이메일 또는 비밀번호가 올바르지 않습니다.");
