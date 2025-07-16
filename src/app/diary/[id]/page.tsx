@@ -11,7 +11,7 @@ const DetailWrap = styled.main`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 3rem;
+  padding-top: 5rem;
 `;
 const Title = styled.h2`
   font-size: 1.5rem;

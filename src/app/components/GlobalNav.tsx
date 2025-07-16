@@ -41,7 +41,7 @@ export default function GlobalNav() {
       <NavBtn onClick={() => router.push("/")}>홈</NavBtn>
       <NavBtn onClick={() => router.push("/diary")}>일기 목록</NavBtn>
       <NavBtn onClick={() => router.push("/write")}>일기 작성</NavBtn>
-      <NavBtn disabled>내 일기 상세</NavBtn>
+      <NavBtn onClick={() => router.push("/chat/1")}>AI 챗봇 대화</NavBtn>
     </NavRow>
   );
 } 

@@ -23,7 +23,7 @@ const Wrap = styled.main`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 2.5rem;
+  padding-top: 5rem;
 `;
 const DiaryBox = styled.div`
   background: #fffbe7;

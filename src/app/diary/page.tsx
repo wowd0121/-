@@ -9,7 +9,7 @@ import { getDiaries, Diary } from "@/lib/diary";
 const ListWrap = styled.main`
   min-height: 100vh;
   background: #f7f8fa;
-  padding: 2.5rem 0 1.5rem 0;
+  padding: 5rem 0 1.5rem 0;
   display: flex;
   flex-direction: column;
   align-items: center;
