@@ -1,5 +1,6 @@
 import "./globals.css";
 import { ReactNode } from "react";
+import { AuthProvider } from "@/lib/auth";
 
 export const metadata = {
   title: "내 감정일기",
@@ -9,7 +10,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }

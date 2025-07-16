@@ -1,67 +1,136 @@
-# Emotion Diary App
+# 감정일기 앱
 
-감정 일기 애플리케이션입니다. Supabase를 기반으로 구축되었습니다.
+Supabase를 기반으로 한 감정일기 관리 애플리케이션입니다.
 
-## 환경 변수 설정
+## 주요 기능
 
-프로젝트 루트에 `.env.local` 파일을 생성하고 다음 환경 변수들을 설정하세요:
+### 🔐 사용자 인증
+- Supabase Auth를 통한 이메일/비밀번호 로그인
+- 회원가입 및 비밀번호 재설정
+- 세션 관리 및 자동 로그인
 
-```bash
-# Supabase 설정
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+### 📝 일기 관리
+- **일기 작성**: 제목, 내용, 감정 태그 선택
+- **일기 목록**: 사용자별 일기 목록 조회
+- **일기 상세**: 일기 내용 상세 보기
+- **일기 수정**: 기존 일기 내용 수정
+- **일기 삭제**: 일기 삭제 기능
 
-# Supabase 서비스 롤 키 (서버 사이드에서만 사용)
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+### 🧭 네비게이션 기능
+- **앞으로가기/뒤로가기**: 이전/다음 일기로 이동
+- **목록 이동**: 일기 목록으로 돌아가기
+- **AI 챗봇**: 일기와 관련된 AI 대화 기능
 
-# 데이터베이스 URL (Prisma용)
-DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres"
+### 🎨 감정 태그
+- 기쁨 😊
+- 분노 😡
+- 불안 😰
+- 슬픔 😢
+- 평온 😌
+- 놀람 😲
 
-# Next.js 설정
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your_nextauth_secret_key
+## 기술 스택
 
-# 기타 환경 변수
-NODE_ENV=development
+- **Frontend**: Next.js 14, TypeScript, Emotion
+- **Backend**: Supabase (PostgreSQL, Auth, Real-time)
+- **Styling**: Emotion (CSS-in-JS)
+- **State Management**: React Hooks
+
+## 데이터베이스 스키마
+
+### diaries 테이블
+```sql
+CREATE TABLE diaries (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  emotion TEXT NOT NULL,
+  emoji TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
-### Supabase 설정 방법
+### 보안 정책
+- Row Level Security (RLS) 활성화
+- 사용자는 자신의 일기만 조회/수정/삭제 가능
+- 자동 인덱싱으로 성능 최적화
 
-1. [Supabase](https://supabase.com)에서 새 프로젝트를 생성하세요
-2. 프로젝트 설정에서 API 키들을 확인하세요
-3. 위의 환경 변수들을 실제 값으로 교체하세요
+## 설치 및 실행
 
-## Getting Started
+1. 환경 변수 설정
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-First, run the development server:
+2. 의존성 설치
+```bash
+npm install
+```
 
+3. 개발 서버 실행
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Supabase 데이터베이스 설정
+- `supabase-schema.sql` 파일의 내용을 Supabase SQL Editor에서 실행
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 페이지 구조
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/` - 메인 페이지
+- `/auth/login` - 로그인
+- `/auth/register` - 회원가입
+- `/auth/forgot-password` - 비밀번호 재설정
+- `/diary` - 일기 목록
+- `/diary/[id]` - 일기 상세
+- `/diary/[id]/edit` - 일기 수정
+- `/write` - 일기 작성
+- `/chat/[id]` - AI 챗봇
 
-## Learn More
+## 주요 컴포넌트
 
-To learn more about Next.js, take a look at the following resources:
+### 일기 관리 (`src/lib/diary.ts`)
+- `getDiaries()` - 사용자 일기 목록 조회
+- `getDiary()` - 일기 상세 조회
+- `createDiary()` - 일기 생성
+- `updateDiary()` - 일기 수정
+- `deleteDiary()` - 일기 삭제
+- `getAdjacentDiaries()` - 이전/다음 일기 조회
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 인증 관리 (`src/lib/auth.tsx`)
+- `useAuth()` - 인증 상태 관리
+- `signIn()` - 로그인
+- `signUp()` - 회원가입
+- `signOut()` - 로그아웃
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 네비게이션 기능
 
-## Deploy on Vercel
+### 앞으로가기/뒤로가기
+- 일기 상세 페이지에서 이전/다음 일기로 이동
+- 최신순으로 정렬된 일기 목록에서 순차적 이동
+- 첫 번째/마지막 일기에서는 해당 버튼 비활성화
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 버튼 구성
+- **이전 일기** (←): 이전 일기로 이동
+- **다음 일기** (→): 다음 일기로 이동
+- **AI 챗봇**: 현재 일기와 관련된 AI 대화
+- **목록으로**: 일기 목록으로 돌아가기
+- **수정**: 일기 수정 페이지로 이동
+- **삭제**: 일기 삭제 (확인 후)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 보안 기능
+
+- 사용자별 데이터 격리
+- RLS 정책으로 데이터 접근 제어
+- 인증된 사용자만 일기 관리 가능
+- 다른 사용자의 일기 접근 차단
+
+## 성능 최적화
+
+- 데이터베이스 인덱싱
+- 클라이언트 사이드 캐싱
+- 로딩 상태 표시
+- 에러 처리 및 사용자 피드백

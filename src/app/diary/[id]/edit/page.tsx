@@ -1,10 +1,9 @@
-/** @jsxImportSource @emotion/react */
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import styled from "@emotion/styled";
 import { useAuth } from "@/lib/auth";
-import { createDiary } from "@/lib/diary";
+import { getDiary, updateDiary, Diary } from "@/lib/diary";
 
 const EMOTION_TAGS = [
   { label: "기쁨", emoji: "😊" },
@@ -70,6 +69,10 @@ const TagButton = styled.button<{ selected: boolean }>`
     background: #ecebff;
   }
 `;
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+`;
 const SaveButton = styled.button<{ disabled: boolean }>`
   background: #6c63ff;
   color: #fff;
@@ -83,6 +86,19 @@ const SaveButton = styled.button<{ disabled: boolean }>`
   transition: background 0.2s;
   &:hover {
     background: #554ee0;
+  }
+`;
+const CancelButton = styled.button`
+  background: #f0f0f0;
+  color: #333;
+  font-size: 1.1rem;
+  padding: 0.7rem 2.2rem;
+  border: none;
+  border-radius: 2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover {
+    background: #e0e0e0;
   }
 `;
 const SavedMsg = styled.div`
@@ -101,18 +117,64 @@ const LoadingText = styled.div`
   text-align: center;
 `;
 
-export default function WritePage() {
+export default function EditDiaryPage() {
   const { user, loading: authLoading } = useAuth();
+  const params = useParams();
+  const router = useRouter();
+  const [diary, setDiary] = useState<Diary | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDiary = async () => {
+      if (!user || !params?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const diaryData = await getDiary(params.id as string);
+        if (!diaryData) {
+          setError('일기를 찾을 수 없습니다.');
+          return;
+        }
+
+        // 다른 사용자의 일기인지 확인
+        if (diaryData.user_id !== user.id) {
+          setError('접근 권한이 없습니다.');
+          return;
+        }
+
+        setDiary(diaryData);
+        setTitle(diaryData.title);
+        setContent(diaryData.content);
+        
+        // 현재 감정 태그 찾기
+        const emotionIndex = EMOTION_TAGS.findIndex(tag => tag.label === diaryData.emotion);
+        setSelected(emotionIndex !== -1 ? emotionIndex : null);
+      } catch (err) {
+        setError('일기를 불러오는 중 오류가 발생했습니다.');
+        console.error('일기 조회 오류:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!authLoading) {
+      fetchDiary();
+    }
+  }, [user, params?.id, authLoading]);
 
   const handleSave = async () => {
-    if (!user || !title || !content || selected === null) return;
+    if (!user || !diary || !title || !content || selected === null) return;
 
     try {
       setSaving(true);
@@ -126,29 +188,30 @@ export default function WritePage() {
         emoji: selectedTag.emoji,
       };
 
-      const result = await createDiary(user.id, diaryData);
+      const result = await updateDiary(diary.id, diaryData);
       
       if (result) {
         setSaved(true);
         setTimeout(() => {
           setSaved(false);
-          router.push("/diary");
+          router.push(`/diary/${diary.id}`);
         }, 1000);
-        setTitle("");
-        setContent("");
-        setSelected(null);
       } else {
-        setError('일기 저장에 실패했습니다.');
+        setError('일기 수정에 실패했습니다.');
       }
     } catch (err) {
-      console.error('일기 저장 오류:', err);
-      setError('일기 저장 중 오류가 발생했습니다.');
+      console.error('일기 수정 오류:', err);
+      setError('일기 수정 중 오류가 발생했습니다.');
     } finally {
       setSaving(false);
     }
   };
 
-  if (authLoading) {
+  const handleCancel = () => {
+    router.push(`/diary/${params?.id}`);
+  };
+
+  if (authLoading || loading) {
     return (
       <Main>
         <LoadingText>로딩 중...</LoadingText>
@@ -159,7 +222,7 @@ export default function WritePage() {
   if (!user) {
     return (
       <Main>
-        <Title>오늘의 감정일기 작성</Title>
+        <Title>일기 수정</Title>
         <div style={{ textAlign: 'center', color: '#666' }}>
           로그인이 필요합니다.
         </div>
@@ -167,9 +230,21 @@ export default function WritePage() {
     );
   }
 
+  if (error || !diary) {
+    return (
+      <Main>
+        <Title>일기 수정</Title>
+        <ErrorMsg>{error || '일기를 찾을 수 없습니다.'}</ErrorMsg>
+        <CancelButton onClick={() => router.push("/diary")}>
+          목록으로
+        </CancelButton>
+      </Main>
+    );
+  }
+
   return (
     <Main>
-      <Title>오늘의 감정일기 작성</Title>
+      <Title>일기 수정</Title>
       <TitleInput
         value={title}
         onChange={e => setTitle(e.target.value)}
@@ -193,13 +268,18 @@ export default function WritePage() {
           </TagButton>
         ))}
       </TagList>
-      <SaveButton
-        onClick={handleSave}
-        disabled={!title || !content || selected === null || saving}
-        type="button"
-      >
-        {saving ? "저장 중..." : "저장하기"}
-      </SaveButton>
+      <ButtonGroup>
+        <SaveButton
+          onClick={handleSave}
+          disabled={!title || !content || selected === null || saving}
+          type="button"
+        >
+          {saving ? "저장 중..." : "저장하기"}
+        </SaveButton>
+        <CancelButton onClick={handleCancel} type="button">
+          취소
+        </CancelButton>
+      </ButtonGroup>
       {saved && <SavedMsg>저장되었습니다!</SavedMsg>}
       {error && <ErrorMsg>{error}</ErrorMsg>}
     </Main>
