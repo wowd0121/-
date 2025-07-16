@@ -59,12 +59,6 @@ export default function GlobalNav() {
       <NavBtn onClick={() => router.push("/")}>홈</NavBtn>
       <NavBtn onClick={() => router.push("/diary")}>일기 목록</NavBtn>
       <NavBtn onClick={() => router.push("/write")}>일기 작성</NavBtn>
-      <NavBtn
-        onClick={() => latestId && router.push(`/chat/${latestId}`)}
-        disabled={!latestId || loading || fetching}
-      >
-        AI 챗봇 대화
-      </NavBtn>
     </NavRow>
   );
 } 
