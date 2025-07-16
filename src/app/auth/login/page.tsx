@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import styled from "@emotion/styled";
+import { FaGoogle, FaGithub } from "react-icons/fa";
 
 const Wrap = styled.main`
   min-height: 100vh;
@@ -54,6 +55,23 @@ const LinkBtn = styled.button`
   margin-top: 0.7rem;
   text-decoration: underline;
 `;
+const SocialBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f7f8fa;
+  border: 1.5px solid #d1d5db;
+  border-radius: 2rem;
+  padding: 0.7rem 1.2rem;
+  font-size: 1.05rem;
+  color: #444;
+  cursor: pointer;
+  transition: background 0.18s, border 0.18s;
+  &:hover {
+    background: #ecebff;
+    border-color: #6c63ff;
+  }
+`;
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -79,10 +97,25 @@ export default function LoginPage() {
     setLoading(false);
   };
 
+  const handleSocialLogin = async (provider: "google" | "github") => {
+    setMsg("");
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({ provider });
+    if (error) setMsg("소셜 로그인에 실패했습니다.");
+    setLoading(false);
+  };
+
   return (
     <Wrap>
       <Form onSubmit={handleSubmit}>
         <h2 style={{ fontSize: "1.3rem", fontWeight: "bold", marginBottom: 8 }}>로그인</h2>
+        <SocialBtn type="button" onClick={() => handleSocialLogin("google")} disabled={loading}>
+          <FaGoogle /> 구글로 로그인
+        </SocialBtn>
+        <SocialBtn type="button" onClick={() => handleSocialLogin("github")} disabled={loading}>
+          <FaGithub /> 깃허브로 로그인
+        </SocialBtn>
+        <div style={{ textAlign: "center", color: "#bbb", fontSize: 13, margin: "8px 0 -2px 0" }}>또는 이메일로 로그인</div>
         <Input
           type="email"
           placeholder="이메일"
@@ -101,6 +134,7 @@ export default function LoginPage() {
           {loading ? "로그인 중..." : "로그인"}
         </Button>
         {msg && <Msg>{msg}</Msg>}
+        <LinkBtn type="button" onClick={() => router.push("/auth/forgot-password")}>비밀번호를 잊으셨나요?</LinkBtn>
         <LinkBtn type="button" onClick={() => router.push("/auth/register")}>회원가입</LinkBtn>
       </Form>
     </Wrap>

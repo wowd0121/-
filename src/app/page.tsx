@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
 import styled from "@emotion/styled";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
 
 const Main = styled.main`
   min-height: 100vh;
@@ -38,15 +40,25 @@ const Button = styled.button`
 `;
 
 export default function Home() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  const handleWriteClick = () => {
+    if (loading) return; // 인증 상태 로딩 중이면 아무 동작 안 함
+    if (user) {
+      router.push("/write");
+    } else {
+      router.push("/auth/login");
+    }
+  };
+
   return (
     <Main>
       <Title>내 감정일기</Title>
       <Desc>
         감정을 자유롭게 기록하고, AI 챗봇과 대화하며 마음을 돌보는 정서지원 플랫폼
       </Desc>
-      <Link href="/write">
-        <Button>오늘의 감정일기 작성</Button>
-      </Link>
+      <Button onClick={handleWriteClick}>오늘의 감정일기 작성</Button>
     </Main>
   );
 }
