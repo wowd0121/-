@@ -1,6 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
 import styled from "@emotion/styled";
+import { useAuth } from "@/lib/auth";
+import { useEffect, useState } from "react";
+import { getDiaries } from "@/lib/diary";
 
 const NavRow = styled.div`
   position: fixed;
@@ -36,12 +39,32 @@ const NavBtn = styled.button`
 
 export default function GlobalNav() {
   const router = useRouter();
+  const { user, loading } = useAuth();
+  const [latestId, setLatestId] = useState<string | null>(null);
+  const [fetching, setFetching] = useState(false);
+
+  useEffect(() => {
+    const fetchLatest = async () => {
+      if (!user) return;
+      setFetching(true);
+      const diaries = await getDiaries(user.id);
+      setLatestId(diaries.length > 0 ? diaries[0].id : null);
+      setFetching(false);
+    };
+    if (user) fetchLatest();
+  }, [user]);
+
   return (
     <NavRow>
       <NavBtn onClick={() => router.push("/")}>홈</NavBtn>
       <NavBtn onClick={() => router.push("/diary")}>일기 목록</NavBtn>
       <NavBtn onClick={() => router.push("/write")}>일기 작성</NavBtn>
-      <NavBtn onClick={() => router.push("/chat/1")}>AI 챗봇 대화</NavBtn>
+      <NavBtn
+        onClick={() => latestId && router.push(`/chat/${latestId}`)}
+        disabled={!latestId || loading || fetching}
+      >
+        AI 챗봇 대화
+      </NavBtn>
     </NavRow>
   );
 } 

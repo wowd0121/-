@@ -22,7 +22,7 @@ const Main = styled.main`
   align-items: center;
   justify-content: flex-start;
   background: #f7f8fa;
-  padding-top: 5rem;
+  padding-top: 7rem;
 `;
 const Title = styled.h2`
   font-size: 1.5rem;
