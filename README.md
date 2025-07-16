@@ -1,4 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Emotion Diary App
+
+감정 일기 애플리케이션입니다. Supabase를 기반으로 구축되었습니다.
+
+## 환경 변수 설정
+
+프로젝트 루트에 `.env.local` 파일을 생성하고 다음 환경 변수들을 설정하세요:
+
+```bash
+# Supabase 설정
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Supabase 서비스 롤 키 (서버 사이드에서만 사용)
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# 데이터베이스 URL (Prisma용)
+DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres"
+
+# Next.js 설정
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret_key
+
+# 기타 환경 변수
+NODE_ENV=development
+```
+
+### Supabase 설정 방법
+
+1. [Supabase](https://supabase.com)에서 새 프로젝트를 생성하세요
+2. 프로젝트 설정에서 API 키들을 확인하세요
+3. 위의 환경 변수들을 실제 값으로 교체하세요
 
 ## Getting Started
 
