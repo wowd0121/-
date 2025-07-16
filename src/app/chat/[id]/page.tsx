@@ -2,6 +2,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import styled from "@emotion/styled";
+import { useAuth } from "@/lib/auth";
+import { getDiary } from "@/lib/diary";
 
 const EMPATHY_STYLES = [
   { key: "listen", label: "🎧 그냥 들어줘" },
@@ -138,23 +140,48 @@ function getTonePrompt(tone: string) {
 }
 
 export default function ChatPage() {
-  const params = useParams();
+  const params = useParams() as any;
+  const { user, loading: authLoading } = useAuth();
   const [diary, setDiary] = useState<any | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [empathy, setEmpathy] = useState("listen");
   const [tone, setTone] = useState("pro");
+  const [error, setError] = useState<string | null>(null);
   const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("diaries") || "[]");
-    const found = data.find((d: any) => d.id === params.id);
-    setDiary(found || null);
-    setMessages([
-      { user: false, text: "안녕하세요! 감정일기를 읽고 공감 대화를 시작할게요." },
-    ]);
-  }, [params.id]);
+    if (authLoading) return;
+    if (!user) {
+      setError("로그인이 필요합니다.");
+      setDiary(null);
+      return;
+    }
+    const fetchDiary = async () => {
+      if (!params || !params.id) {
+        setError("잘못된 접근입니다.");
+        setDiary(null);
+        return;
+      }
+      const diaryData = await getDiary(params.id as string);
+      if (!diaryData) {
+        setError("일기를 찾을 수 없습니다.");
+        setDiary(null);
+        return;
+      }
+      if (diaryData.user_id !== user.id) {
+        setError("접근 권한이 없습니다.");
+        setDiary(null);
+        return;
+      }
+      setDiary(diaryData);
+      setMessages([
+        { user: false, text: "안녕하세요! 감정일기를 읽고 공감 대화를 시작할게요." },
+      ]);
+    };
+    fetchDiary();
+  }, [params.id, user, authLoading]);
 
   useEffect(() => {
     if (chatRef.current) {
@@ -185,6 +212,12 @@ export default function ChatPage() {
     }
   };
 
+  if (authLoading) {
+    return <Wrap>로딩 중...</Wrap>;
+  }
+  if (error) {
+    return <Wrap>{error}</Wrap>;
+  }
   if (!diary) {
     return <Wrap>일기를 찾을 수 없습니다.</Wrap>;
   }
